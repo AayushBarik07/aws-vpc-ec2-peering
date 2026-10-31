@@ -1,0 +1,43 @@
+# =============================================================================
+# Example Terraform Variables — AWS VPC Peering
+# =============================================================================
+# Copy this file to terraform.tfvars and update values matching your environment.
+# =============================================================================
+
+aws_region = "eu-north-1"
+
+# VPC configurations
+vpc_a_cidr     = "10.10.0.0/16"
+vpc_b_cidr     = "10.20.0.0/16"
+vpc_a_name_tag = "VPC-A"
+vpc_b_name_tag = "VPC-B"
+
+# Subnet configurations
+vpc_a_public_subnet_cidr     = "10.10.1.0/24"
+vpc_a_public_subnet_name_tag = "VPC-A-Public-Subnet"
+vpc_b_private_subnet_cidr    = "10.20.1.0/24"
+vpc_b_private_subnet_name_tag = "VPC-B-Private-Subnet"
+
+# Optional VPC A private tier (set to true only if provisioned)
+enable_vpc_a_private_subnet   = false
+vpc_a_private_subnet_cidr     = "10.10.2.0/24"
+vpc_a_private_subnet_name_tag = "VPC-A-Private-Subnet"
+app_a_security_group_name     = "app-a-sg"
+
+# Security Groups
+bastion_security_group_name = "bastion-sg"
+app_b_security_group_name   = "app-b-sg"
+
+# EC2 Instances
+bastion_instance_name_tag = "Bastion-Host"
+app_b_instance_name_tag   = "App-B-Instance"
+
+# Optional explicit Peering ID (leave empty to discover dynamically)
+peering_connection_id = ""
+
+# Resource Tags
+default_tags = {
+  Project     = "AWS-VPC-Peering"
+  Environment = "Lab"
+  ManagedBy   = "Terraform"
+}

@@ -1,19 +1,32 @@
-
-# Terraform
+# Terraform runtime and state files
 .terraform/
 *.tfstate
 *.tfstate.*
 *.tfplan
 crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 
-# AWS credentials and secrets
+# Local variable definitions with sensitive credentials
+*.tfvars
+!terraform.tfvars.example
+
+# AWS credentials, private keys, and secrets
 *.pem
 *.key
+*.id_rsa
+*.id_ed25519
 .env
 .env.*
 
-# Editor and OS files
-.vscode/
+# OS and Editor temporary files
 .DS_Store
 Thumbs.db
-.terraform.lock.hcl
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
