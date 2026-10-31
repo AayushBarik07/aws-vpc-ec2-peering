@@ -12,26 +12,29 @@ The architecture implements a secure **Bastion Host (Jump Host)** topology in **
 
 A foundational requirement for VPC Peering is that the peering VPCs must possess non-overlapping IPv4 CIDR blocks.
 
-```
-+-----------------------------------------------------------------------------------------+
-|                                AWS Region: eu-north-1                                   |
-|                                                                                         |
-|  +---------------------------------------+     +-------------------------------------+  |
-|  | VPC A (Requester)                     |     | VPC B (Accepter)                    |  |
-|  | CIDR: 10.10.0.0/16                    |     | CIDR: 10.20.0.0/16                  |  |
-|  | Total IPs: 65,536                     |     | Total IPs: 65,536                   |  |
-|  |                                       |     |                                     |  |
-|  | +-----------------------------------+ |     | +---------------------------------+ |  |
-|  | | Public Subnet: 10.10.1.0/24       | |     | | Private Subnet: 10.20.1.0/24    | |  |
-|  | | Usable IPs: 251                   | |     | | Usable IPs: 251                 | |  |
-|  | | EC2 Bastion: 10.10.1.10           | |     | | EC2 App Server: 10.20.1.24      | |  |
-|  | +-----------------------------------+ |     | +---------------------------------+ |  |
-|  +---------------------------------------+     +-------------------------------------+  |
-|                     \                               /                                   |
-|                      \                             /                                    |
-|                       === VPC Peering: pcx-xxxx ===                                     |
-|                              (AWS Backbone)                                             |
-+-----------------------------------------------------------------------------------------+
+```mermaid
+flowchart LR
+    subgraph Region["AWS Region: eu-north-1"]
+        subgraph VPCA["VPC A (Requester) — 10.10.0.0/16"]
+            SubnetA["Public Subnet: 10.10.1.0/24<br/>• Bastion Host (10.10.1.10)<br/>• Usable IPs: 251"]
+        end
+
+        subgraph Peering["Direct AWS Backbone"]
+            PCX["VPC Peering Connection<br/>(pcx-xxxx)"]
+        end
+
+        subgraph VPCB["VPC B (Accepter) — 10.20.0.0/16"]
+            SubnetB["Private Subnet: 10.20.1.0/24<br/>• App Server (10.20.1.24)<br/>• Usable IPs: 251"]
+        end
+    end
+
+    SubnetA <===>|"Non-transitive Peering"| PCX
+    PCX <===>|"Direct Routing"| SubnetB
+
+    classDef vpc fill:#f1f5f9,stroke:#0ea5e9,stroke-width:2px,color:#0f172a;
+    classDef pcx fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#78350f;
+    class VPCA,VPCB vpc;
+    class PCX pcx;
 ```
 
 ### CIDR Subnetting Matrix
@@ -99,25 +102,13 @@ Associated Subnet: `VPC-B-Private-Subnet` (`10.20.1.0/24`)
 
 Security Groups act as stateful virtual firewalls operating at the Elastic Network Interface (ENI) level.
 
-```
-+------------------------------------------------------------------------------------+
-|                                Security Group Contract                            |
-|                                                                                    |
-| [ Admin Workstation ]                                                              |
-|        |                                                                           |
-|        | Inbound TCP 22 (Admin IP /32 only)                                        |
-|        v                                                                           |
-| [ bastion-sg (VPC A) ]                                                             |
-|        |                                                                           |
-|        | Outbound TCP 22 to 10.20.0.0/16                                           |
-|        v                                                                           |
-|   (VPC Peering: pcx-xxxx)                                                          |
-|        |                                                                           |
-|        | Inbound TCP 22 from bastion-sg ID (or 10.10.1.0/24)                       |
-|        | Inbound ICMP (Echo Request) from 10.10.0.0/16                             |
-|        v                                                                           |
-| [ app-b-sg (VPC B) ]                                                               |
-+------------------------------------------------------------------------------------+
+```mermaid
+flowchart TD
+    Admin["Admin Workstation"] -->|"Inbound TCP 22<br/>(Admin IP /32 only)"| BastionSG["bastion-sg (VPC A)<br/>• Inbound: TCP 22 (Admin IP)<br/>• Outbound: TCP 22 to VPC B CIDR"]
+    BastionSG -->|"VPC Peering (pcx-xxxx)<br/>Direct AWS Backbone"| AppSG["app-b-sg (VPC B)<br/>• Inbound: TCP 22 from bastion-sg ID<br/>• Inbound: ICMP Echo from 10.10.0.0/16<br/>• Outbound: VPC A CIDR"]
+
+    classDef sg fill:#f8fafc,stroke:#2563eb,stroke-width:2px,color:#0f172a;
+    class BastionSG,AppSG sg;
 ```
 
 ### Bastion Security Group (`bastion-sg`)

@@ -4,26 +4,19 @@
 
 In a cloud network architecture, private network connectivity must be secured with defense-in-depth and least-privilege principles.
 
-```
-+------------------------------------------------------------------------------------------+
-|                                Defense-in-Depth Layers                                   |
-|                                                                                          |
-|  Layer 1: Identity & Access Management (IAM)                                             |
-|  - MFA-protected console & programmatic access                                           |
-|  - Least privilege IAM roles for EC2 administration                                      |
-|                                                                                          |
-|  Layer 2: Network Perimeter (IGW & VPC Routing)                                          |
-|  - No Internet Gateway in VPC B (Zero public internet exposure)                         |
-|  - Strict non-transitive VPC Peering                                                     |
-|                                                                                          |
-|  Layer 3: Stateful Firewall (Security Groups)                                            |
-|  - Bastion: Inbound TCP 22 restricted strictly to Administrator IP (/32)                 |
-|  - App B: Inbound TCP 22 restricted strictly to Bastion Security Group                   |
-|                                                                                          |
-|  Layer 4: Host-Level Access (SSH & Secrets Management)                                   |
-|  - SSH ProxyJump (-J) architecture (Private keys NEVER stored on jump host)             |
-|  - Key pair rotation and secure file permissions (chmod 400)                             |
-+------------------------------------------------------------------------------------------+
+```mermaid
+flowchart TD
+    L1["<b>Layer 1: Identity & Access Management (IAM)</b><br/>• MFA-protected console & programmatic access<br/>• Least-privilege IAM roles for EC2 administration"]
+    L2["<b>Layer 2: Network Perimeter (IGW & VPC Routing)</b><br/>• No Internet Gateway in VPC B (Zero public internet exposure)<br/>• Strict non-transitive VPC Peering across AWS backbone"]
+    L3["<b>Layer 3: Stateful Firewall (Security Groups)</b><br/>• Bastion: Inbound TCP 22 restricted strictly to Administrator IP (/32)<br/>• App B: Inbound TCP 22 restricted to Bastion SG ID & ICMP from VPC A"]
+    L4["<b>Layer 4: Host-Level Access (SSH & Secrets Management)</b><br/>• SSH ProxyJump (-J) architecture (Private keys NEVER stored on jump host)<br/>• Key pair rotation and secure file permissions (chmod 400)"]
+
+    L1 --> L2
+    L2 --> L3
+    L3 --> L4
+
+    classDef layer fill:#f8fafc,stroke:#475569,stroke-width:2px,color:#0f172a;
+    class L1,L2,L3,L4 layer;
 ```
 
 ---

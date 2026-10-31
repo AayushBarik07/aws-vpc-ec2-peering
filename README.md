@@ -142,21 +142,53 @@ VPC Peering requires non-overlapping address spaces. The following CIDR design e
 
 ## Implementation Workflow
 
-```
-[Phase 1: VPCs & Subnets]  -->  [Phase 2: Edge Internet Gateway]  -->  [Phase 3: VPC Peering]
-  - Create VPC A & VPC B         - Create IGW-A                          - Request Peering (VPC A)
-  - Create Public/Private Subnets - Attach to VPC A                       - Accept Peering (VPC B)
-          |                                                                       |
-          v                                                                       v
-[Phase 4: Routing Tables]  <------------------------------------------------------+
-  - VPC A Public RT: 0.0.0.0/0 -> IGW, 10.20.0.0/16 -> PCX
-  - VPC B Private RT: 10.10.0.0/16 -> PCX
-          |
-          v
-[Phase 5: Security Groups] -->  [Phase 6: EC2 Compute]  -->  [Phase 7: Validation]
-  - bastion-sg: Port 22 from Admin IP  - Bastion (Public IP)    - SSH to Bastion
-  - app-b-sg: Port 22/ICMP from VPC A  - App B (Private IP)     - ICMP Ping over Peering
-                                                                 - SSH ProxyJump to App B
+```mermaid
+flowchart TD
+    subgraph P1["Phase 1: VPCs & Subnets"]
+        direction TB
+        P1_1["• Provision VPC A (10.10.0.0/16)<br/>• Provision VPC B (10.20.0.0/16)<br/>• Create Public & Private Subnets"]
+    end
+
+    subgraph P2["Phase 2: Edge Internet Gateway"]
+        direction TB
+        P2_1["• Create VPC-A-IGW<br/>• Attach to VPC A exclusively"]
+    end
+
+    subgraph P3["Phase 3: VPC Peering"]
+        direction TB
+        P3_1["• Request Peering Connection (VPC A)<br/>• Accept Connection Request (VPC B)<br/>• Verify Active Status (pcx-xxxx)"]
+    end
+
+    subgraph P4["Phase 4: Route Tables"]
+        direction TB
+        P4_1["• VPC A Public RT: 0.0.0.0/0 &rarr; IGW & 10.20.0.0/16 &rarr; PCX<br/>• VPC B Private RT: 10.10.0.0/16 &rarr; PCX (No IGW)"]
+    end
+
+    subgraph P5["Phase 5: Security Groups"]
+        direction TB
+        P5_1["• bastion-sg: Port 22 from Admin IP /32<br/>• app-b-sg: Port 22 from bastion-sg & ICMP from VPC A"]
+    end
+
+    subgraph P6["Phase 6: EC2 Compute"]
+        direction TB
+        P6_1["• Launch Bastion Host in VPC A (Public IP)<br/>• Launch App B Instance in VPC B (Private IP)"]
+    end
+
+    subgraph P7["Phase 7: Validation"]
+        direction TB
+        P7_1["• SSH into Bastion Host<br/>• ICMP Ping across Peering (0% packet loss)<br/>• End-to-end SSH ProxyJump into App B"]
+    end
+
+    P1 --> P2
+    P2 --> P3
+    P1 --> P4
+    P3 --> P4
+    P4 --> P5
+    P5 --> P6
+    P6 --> P7
+
+    classDef phase fill:#f8fafc,stroke:#3b82f6,stroke-width:2px,color:#1e293b;
+    class P1_1,P2_1,P3_1,P4_1,P5_1,P6_1,P7_1 phase;
 ```
 
 For full implementation steps, see [docs/implementation.md](docs/implementation.md).
