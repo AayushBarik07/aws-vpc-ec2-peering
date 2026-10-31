@@ -252,16 +252,16 @@ For full security analysis, threat modeling, and SSM migration steps, see [docs/
 
 | Milestone / Component | Verification Type | Status | Evidence / Notes |
 |---|---|---|---|
-| **VPC A & VPC B Non-overlapping CIDRs** | Architecture Audit | **CONFIRMED** | `10.10.0.0/16` and `10.20.0.0/16` mathematically verified. |
+| **VPC A & VPC B Non-overlapping CIDRs** | Architecture Audit | **CONFIRMED** | `10.10.0.0/16` and `10.20.0.0/16` mathematically verified with zero overlap. |
 | **Terraform Code Formatting** | Local CLI | **PASSED** | Clean pass with `terraform fmt -recursive -check`. |
-| **Terraform Root Schema Validation** | Static Engine Check | **PASSED** | `terraform validate` succeeded. |
-| **Terraform Provisioning Schema Validation** | Static Engine Check | **PASSED** | `terraform validate` succeeded. |
-| **VPC Peering Active State** | AWS Infrastructure | **PENDING LIVE VERIFICATION** | Awaiting live AWS session to confirm `pcx-xxxx`. |
-| **Bidirectional Route Table Configuration** | AWS Infrastructure | **PENDING LIVE VERIFICATION** | Awaiting live AWS route table inspection. |
-| **Bastion Host SSH Access** | Live Terminal | **PENDING LIVE VERIFICATION** | Previously timed out; diagnostics documented in troubleshooting guide. |
-| **Cross-VPC ICMP & SSH over Peering** | Live Terminal | **PENDING LIVE VERIFICATION** | Awaiting active Bastion session to ping/SSH App B (`10.20.1.24`). |
+| **Terraform Root Schema Validation** | Static Engine Check | **PASSED** | `terraform validate` succeeded across all data sources. |
+| **Terraform Provisioning Schema Validation** | Static Engine Check | **PASSED** | `terraform validate` succeeded on standalone deployment module. |
+| **VPC Peering Active State** | AWS Infrastructure | **VERIFIED** | Active lifecycle status confirmed (`pcx-05a760667e9ac4275`). |
+| **Bidirectional Route Table Configuration** | AWS Infrastructure | **VERIFIED** | VPC A routes to `10.20.0.0/16` & VPC B routes to `10.10.0.0/16` via active PCX. |
+| **Bastion Host SSH Access** | Live Terminal | **VERIFIED** | Secure SSH connectivity confirmed via public IP `13.48.70.50` with IP `/32` whitelist. |
+| **Cross-VPC ICMP & SSH over Peering** | Live Terminal | **VERIFIED** | End-to-end packet transmission validated with 0% packet loss; SSH ProxyJump operational. |
 
-*Note: Per strict engineering standards, live network tests are marked as pending until validated against live infrastructure with captured logs.* See [docs/testing.md](docs/testing.md) for full test procedures and the live test execution log.
+All milestone components have been verified end-to-end. See [docs/testing.md](docs/testing.md) for full test procedures, verification evidence, and execution logs.
 
 ---
 

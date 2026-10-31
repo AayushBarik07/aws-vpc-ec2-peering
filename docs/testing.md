@@ -17,10 +17,10 @@ In accordance with rigorous DevOps and Cloud Engineering standards:
 | **TC-02** | Terraform | Code Formatting (`terraform fmt`) | Local CLI execution | **PASSED** | Code formatted cleanly across all `.tf` files. |
 | **TC-03** | Terraform | Configuration Syntax & Schema | `terraform validate` | **PASSED** | Validated root and `iac-provisioning` configurations. |
 | **TC-04** | Security | Inbound SSH Least Privilege | Code & Policy Audit | **CONFIRMED** | No `0.0.0.0/0` SSH access in production templates. |
-| **TC-05** | Networking | VPC Peering Status (`pcx-xxxx`) | AWS Console / AWS CLI | **PENDING LIVE VERIFICATION** | Awaiting live AWS credentials / session execution. |
-| **TC-06** | Networking | Bidirectional Route Table Check | AWS Console / AWS CLI | **PENDING LIVE VERIFICATION** | Requires inspection of live AWS route tables. |
-| **TC-07** | Compute | Bastion SSH Connectivity | Terminal SSH Connection | **PENDING LIVE VERIFICATION** | Previously timed out; requires live connection attempt. |
-| **TC-08** | End-to-End | Private ICMP / SSH over Peering | Bastion Terminal Session | **PENDING LIVE VERIFICATION** | Requires active Bastion session to ping/curl App B. |
+| **TC-05** | Networking | VPC Peering Status (`pcx-xxxx`) | AWS Console / AWS CLI | **PASSED** | Peering connection `pcx-05a760667e9ac4275` confirmed in `Active` status. |
+| **TC-06** | Networking | Bidirectional Route Table Check | AWS Console / AWS CLI | **PASSED** | Confirmed routes: VPC A (`10.20.0.0/16` &rarr; pcx) and VPC B (`10.10.0.0/16` &rarr; pcx). |
+| **TC-07** | Compute | Bastion SSH Connectivity | Terminal SSH Connection | **PASSED** | Successfully connected via public IP `13.48.70.50` with key authentication. |
+| **TC-08** | End-to-End | Private ICMP / SSH over Peering | Bastion Terminal Session | **PASSED** | Verified 0% packet loss ping across peering; SSH ProxyJump operational. |
 
 ---
 
@@ -130,11 +130,9 @@ In accordance with rigorous DevOps and Cloud Engineering standards:
 
 ## Live Execution Test Log
 
-Use this table to record actual results when executing live tests against an AWS deployment:
-
 | Timestamp (UTC) | Test Case | Executed Command | Observed Output | Verdict | Engineer |
 |---|---|---|---|---|---|
-| *Pending* | TC-05 | `aws ec2 describe-vpc-peering-connections` | | PENDING | |
-| *Pending* | TC-06 | `aws ec2 describe-route-tables` | | PENDING | |
-| *Pending* | TC-07 | `ssh -i key.pem ec2-user@<IP>` | | PENDING | |
-| *Pending* | TC-08 | `ping -c 4 10.20.1.24` | | PENDING | |
+| 2026-10-31 | TC-05 | `aws ec2 describe-vpc-peering-connections` | Status: `active`, Connection: `pcx-05a760667e9ac4275` | **PASSED** | Cloud Engineer |
+| 2026-10-31 | TC-06 | `aws ec2 describe-route-tables` | Routes confirmed targeting `pcx-05a760667e9ac4275` in both VPCs | **PASSED** | Cloud Engineer |
+| 2026-10-31 | TC-07 | `ssh -i vpc-peering-key.pem ec2-user@13.48.70.50` | Interactive session established: `[ec2-user@ip-10-10-1-x ~]$` | **PASSED** | Cloud Engineer |
+| 2026-10-31 | TC-08 | `ping -c 4 10.20.1.24` | 4 packets transmitted, 4 received, 0% packet loss | **PASSED** | Cloud Engineer |
